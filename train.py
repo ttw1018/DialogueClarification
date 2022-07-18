@@ -5,8 +5,9 @@ from utils.preprocess import preprocess, get_data_loader, TaskDataset
 from tqdm import tqdm
 from torch.optim import Adam
 from inference import *
+from accelerate import Accelerator
 
-def train_epoch(model, tokenizer, optimizer, loader, global_step, device):
+def train_epoch(model, tokenizer, optimizer, loader, global_step, device, accelerator):
     for x in tqdm(loader, desc='train'):
         input, label = (x, x)
         input = input.to(device)
@@ -14,7 +15,8 @@ def train_epoch(model, tokenizer, optimizer, loader, global_step, device):
         output = model(input, labels=label)
         loss = output[0]
         optimizer.zero_grad()
-        loss.backward()
+        # loss.backward()
+        accelerator.backward(loss)
         optimizer.step()
         global_step = global_step + 1
         if global_step % 1000 == 0:
@@ -22,9 +24,11 @@ def train_epoch(model, tokenizer, optimizer, loader, global_step, device):
     return model, optimizer, global_step
 
 def main(model_name_or_path):
+    accelerator = Accelerator()
+    device = accelerator.device
     epoches = 3
     lr = 0.00001
-    device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
+    # device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
     model = get_model(model_name_or_path)
     tokenizer = get_tokenizer(model_name_or_path)
     data = preprocess()
@@ -33,13 +37,17 @@ def main(model_name_or_path):
     model = model.to(device)
     optimizer = Adam(model.parameters(), lr=lr)
     global_step = 0
+    model, optimizer, loader = accelerator.prepare(model, optimizer, loader)
+
     for epoch in tqdm(iterable=range(epoches), desc="epoch"):
-        model, optimizer, global_step = train_epoch(model, tokenizer, optimizer, loader, global_step, device)
+        model, optimizer, global_step = train_epoch(model, tokenizer, optimizer, loader, global_step, device,
+                                                    accelerator)
 
 if __name__ == "__main__":
-    main("/Users/tianwentang/models/gpt2")
-    model_name_or_path = "/Users/tianwentang/models/gpt2"
+    # main("/Users/tianwentang/models/gpt2")
+    # model_name_or_path = "/Users/tianwentang/models/gpt2"
     sents = preprocess()
-    model = get_model(model_name_or_path)
-    tokenize = get_tokenizer(model_name_or_path)
-    clarification(model, tokenize, sents[0])
+    print(len(sents))
+    # model = get_model(model_name_or_path)
+    # tokenize = get_tokenizer(model_name_or_path)
+    # clarification(model, tokenize, sents[0])

@@ -19,4 +19,4 @@ def get_data_loader(dataset, tokenizer, batch_size):
     def collate_fn(data):
         return pad_sequence(data, batch_first=True)
 
-    return DataLoader(dataset, batch_size=batch_size, collate_fn=collate_fn)
+    return DataLoader(dataset, batch_size=batch_size, collate_fn=collate_fn, shuffle=True)
