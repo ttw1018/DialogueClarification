@@ -8,10 +8,11 @@ def process1(file_name):
     fin = open(file_name, "r")
     for i in fin:
         dia = json.loads(i)
-        sent = '<|context|>' + dia['context'] + '<|endofcontext|>'
-        sent += '<|entity1|>' + dia['entity1'] + '<|endofentity1|>'
-        sent += '<|entity2|>' + dia['entity2'] + '<|endofentity2|>'
-        sent += '<|notneedclarify|>' if dia['label'] == '1' else '<|needclarify|>'
+        sent = '<|context|> ' + dia['context'] + ' <|endofcontext|> '
+        sent += '<|entity1|>' + dia['entity1'] + ' <|endofentity1|> '
+        sent += '<|entity2|>' + dia['entity2'] + ' <|endofentity2|> '
+        sent += ' <|notneedclarify|> ' if dia['label'] == '1' else ' <|needclarify|> '
+        sent = '<|endoftext|> ' + sent + ' <|endoftext|>'
         sents.append(sent)
     return sents
 
@@ -32,12 +33,13 @@ def process3(file_name, file_type='train', refresh=False):
                 context = '<|user|>' + contexts[n]
             else:
                 context = '<|system|>' + contexts[n]
-        sent = '<|context|>' + context + '<|endofcontext|>'
-        sent += '<|entity1|>' + dia['entity1'] + '<|endofentity1|>'
-        sent += '<|entity2|>' + dia['entity2'] + '<|endofentity2|>'
-        sent += '<|notneedclarify|>'
-        sent += '<|response|>' + contexts[-2] + '<|endofresponse|>'
-        sent += '<|clarifyuserinput|>' + contexts[-1] + '<|endofclarifyuserinput|>'
+        sent =  '<|context|> ' + context + ' <|endofcontext|> '
+        sent += '<|entity1|> ' + dia['entity1'] + ' <|endofentity1|> '
+        sent += '<|entity2|> ' + dia['entity2'] + ' <|endofentity2|> '
+        sent += ' <|notneedclarify|> '
+        sent += ' <|response|> ' + contexts[-2] + ' <|endofresponse|> '
+        sent += ' <|clarifyuserinput|> ' + contexts[-1] + ' <|endofclarifyuserinput|> '
+        sent = '<|endoftext|> ' + sent + ' <|endoftext|>'
         sents.append(sent)
     return sents
 
