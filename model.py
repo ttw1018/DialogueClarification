@@ -14,7 +14,9 @@ def get_model(model_name_or_path):
     return model
 
 
-def save_model(model, tokenizer, gloab_step):
+def save_model(model, tokenizer, gloab_step, accelerator):
+    accelerator.wait_for_everyone()
+    model = accelerator.unwrap_model(model)
     path = f"./output/global_step-{gloab_step}/"
     model.save_pretrained(path)
     tokenizer.save_pretrained(path)
